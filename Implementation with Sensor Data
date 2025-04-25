@@ -1,0 +1,163 @@
+import random
+import time
+import math
+import heapq
+
+# Generate 1000 random sensor readings (temperature between -50 to 150)
+sensor_data = [random.uniform(-50, 150) for _ in range(1000)]
+
+# 1. Searching Algorithms Implementation
+def linear_search(arr, target):
+    for i in range(len(arr)):
+        if arr[i] == target:
+            return i
+    return -1
+
+def binary_search(arr, target):
+    low, high = 0, len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+
+def jump_search(arr, target):
+    n = len(arr)
+    step = int(math.sqrt(n))
+    prev = 0
+    
+    while arr[min(step, n) - 1] < target:
+        prev = step
+        step += int(math.sqrt(n))
+        if prev >= n:
+            return -1
+    
+    for i in range(prev, min(step, n)):
+        if arr[i] == target:
+            return i
+    return -1
+
+# 2. Sorting Algorithms Implementation
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        for j in range(0, n-i-1):
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+
+def selection_sort(arr):
+    for i in range(len(arr)):
+        min_idx = i
+        for j in range(i+1, len(arr)):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+
+def insertion_sort(arr):
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i-1
+        while j >= 0 and key < arr[j]:
+            arr[j+1] = arr[j]
+            j -= 1
+        arr[j+1] = key
+
+def merge_sort(arr):
+    if len(arr) > 1:
+        mid = len(arr) // 2
+        L = arr[:mid]
+        R = arr[mid:]
+
+        merge_sort(L)
+        merge_sort(R)
+
+        i = j = k = 0
+
+        while i < len(L) and j < len(R):
+            if L[i] < R[j]:
+                arr[k] = L[i]
+                i += 1
+            else:
+                arr[k] = R[j]
+                j += 1
+            k += 1
+
+        while i < len(L):
+            arr[k] = L[i]
+            i += 1
+            k += 1
+
+        while j < len(R):
+            arr[k] = R[j]
+            j += 1
+            k += 1
+
+def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quick_sort(left) + middle + quick_sort(right)
+
+def heap_sort(arr):
+    heapq.heapify(arr)
+    return [heapq.heappop(arr) for _ in range(len(arr))]
+
+# Test searching algorithms
+target = sensor_data[500]  # Pick a value we know exists
+sorted_data = sorted(sensor_data.copy())
+
+# Linear search
+start = time.time()
+linear_idx = linear_search(sensor_data, target)
+linear_time = time.time() - start
+
+# Binary search
+start = time.time()
+binary_idx = binary_search(sorted_data, target)
+binary_time = time.time() - start
+
+# Jump search
+start = time.time()
+jump_idx = jump_search(sorted_data, target)
+jump_time = time.time() - start
+
+print(f"Searching Results (target={target:.2f}):")
+print(f"Linear Search: Index {linear_idx}, Time: {linear_time:.6f}s")
+print(f"Binary Search: Index {binary_idx}, Time: {binary_time:.6f}s")
+print(f"Jump Search:   Index {jump_idx}, Time: {jump_time:.6f}s")
+
+# Test sorting algorithms
+sorting_algorithms = {
+    "Bubble Sort": bubble_sort,
+    "Selection Sort": selection_sort,
+    "Insertion Sort": insertion_sort,
+    "Merge Sort": merge_sort,
+    "Quick Sort": quick_sort,
+    "Heap Sort": heap_sort
+}
+
+results = {}
+for name, algorithm in sorting_algorithms.items():
+    data = sensor_data.copy()
+    start = time.time()
+    if name == "Quick Sort":
+        data = algorithm(data)  # Quick sort returns a new list
+    elif name == "Heap Sort":
+        data = algorithm(data)  # Heap sort returns a new list
+    else:
+        algorithm(data)  # Other sorts sort in-place
+    elapsed = time.time() - start
+    results[name] = elapsed
+    # Verify the sort worked
+    assert data == sorted(data) if name in ["Quick Sort", "Heap Sort"] else data == sorted(sensor_data.copy())
+
+print("\nSorting Results:")
+for name, time_taken in sorted(results.items(), key=lambda x: x[1]):
+    print(f"{name}: {time_taken:.6f}s")
